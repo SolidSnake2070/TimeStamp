@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Feierabend-Timer</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="icon.png" type="image/png"/>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .container {
+            width: 300px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        input[type="time"] {
+            width: 80%;
+            padding: 6px;
+            font-size: 16px;
+        }
+        button {
+            margin-top: 10px;
+            width: 100%;
+            padding: 8px;
+            background: #2c82c9;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #1d5e8a;
+        }
+        .output {
+            margin-top: 15px;
+            font-size: 15px;
+        }
+        .highlight {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🕔 Feierabend-Timer</h2>
+        <div id="today"></div>
+        <input type="time" id="startTime" />
+        <button onclick="startTimer()">Start</button>
+        <div class="output" id="output"></div>
+    </div>
+
+    <script>
+        let interval;
+
+        function startTimer() {
+            clearInterval(interval);
+            const input = document.getElementById('startTime').value;
+            if (!input) return;
+            updateTimer(input);
+            interval = setInterval(() => updateTimer(input), 1000);
+        }
+
+        function updateTimer(input) {
+            const [hours, minutes] = input.split(':').map(Number);
+            const start = new Date();
+            start.setHours(hours, minutes, 0, 0);
+
+            let pause = 0;
+            const end = new Date(start.getTime() + 8 * 60 * 60 * 1000);
+            if (8 >= 9) pause = 45;
+            else if (8 >= 6) pause = 30;
+
+            const finalEnd = new Date(end.getTime() + pause * 60 * 1000);
+            const now = new Date();
+            const remainingMs = finalEnd.getTime() - now.getTime();
+
+            const output = document.getElementById('output');
+            if (remainingMs > 0) {
+                const hrs = Math.floor(remainingMs / 3600000);
+                const mins = Math.floor((remainingMs % 3600000) / 60000);
+                const secs = Math.floor((remainingMs % 60000) / 1000);
+                output.innerHTML = `Feierabend um: <span class="highlight">${finalEnd.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span><br>Verbleibend: <span class="highlight">${hrs.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}</span>`;
+            } else {
+                output.innerHTML = "<span class='highlight'>✅ Feierabend erreicht – Gute Erholung!</span>";
+            }
+        }
+
+        // Aktuelles Datum
+        const today = new Date();
+        const dateString = today.toLocaleDateString('de-DE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        document.getElementById('today').textContent = dateString;
+    </script>
+</body>
+</html>
