@@ -26,6 +26,9 @@ pip install -r requirements.txt
 
 3. Starten:
 ```bash
+git clone https://github.com/deinname/FeierabendTimer.git
+cd FeierabendTimer
+pip install -r requirements.txt
 python app.py
 ```
 
