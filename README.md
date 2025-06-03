@@ -13,26 +13,7 @@ Ein einfaches, lokales Web-Tool zur Berechnung deiner Arbeitszeit inkl. gesetzli
 
 ## 🚀 Nutzung
 
-1. Repository klonen:
-```bash
-git clone https://github.com/deinname/FeierabendTimer.git
-cd FeierabendTimer
-```
-
-2. Abhängigkeiten installieren:
-```bash
-pip install -r requirements.txt
-```
-
-3. Starten:
-```bash
-git clone https://github.com/deinname/FeierabendTimer.git
-cd FeierabendTimer
-pip install -r requirements.txt
-python app.py
-```
-
-4. Seite öffnet sich im Browser – Edge bietet ggf. „Als App installieren“ an.
+ Seite öffnet sich im Browser – Edge bietet ggf. „Als App installieren“ an.
 
 ## 💡 Hinweis
 
