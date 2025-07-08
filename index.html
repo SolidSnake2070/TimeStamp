@@ -1,38 +1,3 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Feierabend-Timer</title>
-    <link rel="manifest" href="manifest.json" />
-    <link rel="icon" href="icon.png" type="image/png"/>
-    <style>
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #f5f5f5;
-            color: #333;
-            padding: 0;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-        }
-        .container {
-            width: 280px;
-            background: white;
-            padding: 16px;
-            border-radius: 10px;
-            box-shadow: 0 0 8px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-        h2 { margin: 0.5em 0 0.2em; }
-        input[type="time"] {
-            width: 100%;
-            padding: 6px;
-            font-size: 16px;
-        }
-        button {
             margin-top: 10px;
             width: 100%;
             padding: 8px;
@@ -58,6 +23,7 @@
         <div id="today"></div>
         <input type="time" id="startTime" />
         <button onclick="startTimer()">Start</button>
+        <button onclick="addPastHours()">Stunden nachtragen</button>
         <div class="output" id="output"></div>
         <div class="summary" id="monthly"></div>
     </div>
@@ -83,26 +49,7 @@
             localStorage.setItem("workdays", JSON.stringify(all));
         }
 
-        function calculateWorkMinutes(startStr) {
-            return 8 * 60;
-        }
-
-        function updateTimer(startStr) {
-            const [hours, minutes] = startStr.split(':').map(Number);
-            const start = new Date();
-            start.setHours(hours, minutes, 0, 0);
-            const finalEnd = new Date(start.getTime() + 8 * 60 * 60 * 1000);
-            const now = new Date();
-            const remainingMs = finalEnd.getTime() - now.getTime();
-
-            const output = document.getElementById('output');
-            if (remainingMs > 0) {
-                const hrs = Math.floor(remainingMs / 3600000);
-                const mins = Math.floor((remainingMs % 3600000) / 60000);
-                const secs = Math.floor((remainingMs % 60000) / 1000);
-                output.innerHTML = `Feierabend um: <span class="highlight">${finalEnd.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span><br>Verbleibend: <span class="highlight">${hrs.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}</span>`;
-            } else {
-                output.innerHTML = "<span class='highlight'>✅ Feierabend erreicht – Gute Erholung!</span>";
+@@ -106,40 +107,61 @@
             }
 
             updateMonthlyOverview();
@@ -128,6 +75,13 @@
                 }
             }
 
+            const extras = JSON.parse(localStorage.getItem('pastHours') || '{}');
+            for (const d in extras) {
+                if (d.startsWith(`${year}-${String(month + 1).padStart(2, '0')}`)) {
+                    ist += extras[d];
+                }
+            }
+
             const saldo = ist - soll;
             const st = Math.floor(Math.abs(saldo) / 60).toString().padStart(2, '0');
             const mt = Math.abs(saldo) % 60;
@@ -135,6 +89,20 @@
             const status = (saldo > 0) ? "❌ Über Soll (Kurzarbeit!)" : "✅ im Limit";
 
             document.getElementById("monthly").innerHTML = `📅 ${now.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })}<br>Soll: <b>${Math.floor(soll / 60)}:${(soll % 60).toString().padStart(2, '0')} h</b> – Ist: <b>${Math.floor(ist / 60)}:${(ist % 60).toString().padStart(2, '0')} h</b><br>Saldo: <b>${saldoStr}</b><br>Status: ${status}`;
+        }
+
+        function addPastHours() {
+            const date = prompt('Datum (YYYY-MM-DD):');
+            if (!date) return;
+            const hours = prompt('Gearbeitete Stunden (HH:MM):');
+            if (!hours) return;
+            const [h, m] = hours.split(':').map(Number);
+            if (isNaN(h) || isNaN(m)) return;
+            const minutes = h * 60 + m;
+            const store = JSON.parse(localStorage.getItem('pastHours') || '{}');
+            store[date] = minutes;
+            localStorage.setItem('pastHours', JSON.stringify(store));
+            updateMonthlyOverview();
         }
 
         const today = new Date();
