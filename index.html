@@ -58,6 +58,7 @@
         <div id="today"></div>
         <input type="time" id="startTime" />
         <button onclick="startTimer()">Start</button>
+        <button onclick="addPastHours()">Stunden nachtragen</button>
         <div class="output" id="output"></div>
         <div class="summary" id="monthly"></div>
     </div>
@@ -128,6 +129,13 @@
                 }
             }
 
+            const extras = JSON.parse(localStorage.getItem('pastHours') || '{}');
+            for (const d in extras) {
+                if (d.startsWith(`${year}-${String(month + 1).padStart(2, '0')}`)) {
+                    ist += extras[d];
+                }
+            }
+
             const saldo = ist - soll;
             const st = Math.floor(Math.abs(saldo) / 60).toString().padStart(2, '0');
             const mt = Math.abs(saldo) % 60;
@@ -135,6 +143,20 @@
             const status = (saldo > 0) ? "❌ Über Soll (Kurzarbeit!)" : "✅ im Limit";
 
             document.getElementById("monthly").innerHTML = `📅 ${now.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })}<br>Soll: <b>${Math.floor(soll / 60)}:${(soll % 60).toString().padStart(2, '0')} h</b> – Ist: <b>${Math.floor(ist / 60)}:${(ist % 60).toString().padStart(2, '0')} h</b><br>Saldo: <b>${saldoStr}</b><br>Status: ${status}`;
+        }
+
+        function addPastHours() {
+            const date = prompt('Datum (YYYY-MM-DD):');
+            if (!date) return;
+            const hours = prompt('Gearbeitete Stunden (HH:MM):');
+            if (!hours) return;
+            const [h, m] = hours.split(':').map(Number);
+            if (isNaN(h) || isNaN(m)) return;
+            const minutes = h * 60 + m;
+            const store = JSON.parse(localStorage.getItem('pastHours') || '{}');
+            store[date] = minutes;
+            localStorage.setItem('pastHours', JSON.stringify(store));
+            updateMonthlyOverview();
         }
 
         const today = new Date();

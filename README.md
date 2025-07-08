@@ -10,6 +10,7 @@ Ein einfaches, lokales Web-Tool zur Berechnung deiner Arbeitszeit inkl. gesetzli
 - Anzeige der verbleibenden Zeit bis zum Feierabend
 - Lokale Speicherung in `arbeitszeit.csv`
 - Keine zentrale Datenbank – jeder sieht nur seine Daten
+- Manuelles Nachtragen vergangener Arbeitstage
 
 ## 🚀 Nutzung
 
