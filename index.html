@@ -1,85 +1,85 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8" />
-<title>Feierabend-Timer</title>
-<style>
-  body {
-    font-family: system-ui, sans-serif;
-    background: #f4f7fa;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    min-height: 100vh;
-    margin: 0;
-  }
-  .container {
-    background: #fff;
-    padding: 24px 32px;
-    border-radius: 12px;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
-    width: 380px;
-  }
-  h2 {
-    margin-top: 0;
-    color: #2c82c9;
-    text-align: center;
-  }
-  #today {
-    margin-bottom: 12px;
-    text-align: center;
-    font-weight: 600;
-  }
-  input[type="time"] {
-    width: 100%;
-    padding: 8px 12px;
-    font-size: 16px;
-    border: 1px solid #d0d4da;
-    border-radius: 6px;
-  }
-  button {
-    margin-top: 10px;
-    width: 100%;
-    padding: 8px;
-    background: #2c82c9;
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    font-size: 16px;
-    cursor: pointer;
-  }
-  button + button {
-    background: #4078a7;
-  }
-  .output,
-  .summary {
-    margin-top: 12px;
-    font-size: 14px;
-  }
-  .highlight {
-    font-weight: bold;
-  }
-  /* NEW: History list */
-  .history {
-    margin-top: 16px;
-    font-size: 14px;
-    max-height: 200px;
-    overflow-y: auto;
-    border-top: 1px solid #dbe1e8;
-    padding-top: 10px;
-  }
-  .history ul {
-    padding-left: 18px;
-    margin: 4px 0 12px;
-  }
-  .history li {
-    line-height: 1.4em;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <title>Feierabend‑Timer</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f4f7fa;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: #fff;
+      padding: 24px 32px;
+      border-radius: 12px;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+      width: 400px;
+    }
+    h2 {
+      margin-top: 0;
+      color: #2c82c9;
+      text-align: center;
+    }
+    #today {
+      margin-bottom: 12px;
+      text-align: center;
+      font-weight: 600;
+    }
+    input[type="time"] {
+      width: 100%;
+      padding: 8px 12px;
+      font-size: 16px;
+      border: 1px solid #d0d4da;
+      border-radius: 6px;
+    }
+    button {
+      margin-top: 10px;
+      width: 100%;
+      padding: 8px;
+      background: #2c82c9;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button + button {
+      background: #4078a7;
+    }
+    .output,
+    .summary {
+      margin-top: 12px;
+      font-size: 14px;
+    }
+    .highlight {
+      font-weight: bold;
+    }
+    /* History */
+    .history {
+      margin-top: 16px;
+      font-size: 14px;
+      max-height: 220px;
+      overflow-y: auto;
+      border-top: 1px solid #dbe1e8;
+      padding-top: 10px;
+    }
+    .history ul {
+      padding-left: 18px;
+      margin: 4px 0 12px;
+    }
+    .history li {
+      line-height: 1.4em;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
-    <h2>🕔 Feierabend-Timer</h2>
+    <h2>🕔 Feierabend‑Timer</h2>
     <div id="today"></div>
     <input type="time" id="startTime" />
     <button id="startBtn">Start</button>
@@ -87,26 +87,30 @@
 
     <div class="output" id="output"></div>
     <div class="summary" id="monthly"></div>
-    <!-- NEW: Übersicht -->
     <div class="history" id="history"></div>
   </div>
 
   <script>
     (function () {
       "use strict";
+      /* === Konstanten === */
       const MS_PER_MIN = 60 * 1000;
-      const WORKDAY_MIN = 8 * 60;
+      const NET_TARGET_MIN = 8 * 60;          // 8 h netto
+      const DEFAULT_BREAK_30 = 30;            // Minuten
+      const EXT_BREAK_45 = 45;
+      // Ziel‑Feierabend (8 h netto -> 30 min Pause => 8 h 30 inkl.)
+      const GROSS_TARGET_MIN = NET_TARGET_MIN + DEFAULT_BREAK_30; // 510 min
 
+      /* === DOM‑Helper === */
       const $ = (id) => document.getElementById(id);
-
-      const todayEl = $("today");
-      const outputEl = $("output");
+      const todayEl   = $("today");
+      const outputEl  = $("output");
       const monthlyEl = $("monthly");
       const historyEl = $("history");
 
       let intervalId = null;
 
-      // ---------- Init ----------
+      /* === Init === */
       todayEl.textContent = new Date().toLocaleDateString("de-DE", {
         weekday: "long",
         year: "numeric",
@@ -120,42 +124,48 @@
       updateMonthlyOverview();
       renderHistory();
 
-      // ---------- Timer ----------
+      /* === Arbeits‑Timer === */
       function startTimer() {
         if (intervalId) clearInterval(intervalId);
-
         const startStr = $("startTime").value;
         if (!startStr) return alert("Bitte Startzeit eingeben.");
 
-        saveWorkday(startStr);
+        saveTodayStart(startStr);
         renderTimer(startStr);
         intervalId = setInterval(() => renderTimer(startStr), 1000);
       }
 
       function renderTimer(startStr) {
-        const workedMin = calculateMinutesToday(startStr);
-        const leftMin = WORKDAY_MIN - workedMin;
+        const grossMin = diffNowToStart(startStr);
+        const breakMin = breakDeduct(grossMin);
+        const netMin   = Math.max(0, grossMin - breakMin);
+        const leftMin  = NET_TARGET_MIN - netMin;
 
+        // Ziel‑Feierabend (feste 8h Netto => 30min Pause)
         const end = timeStringToDate(startStr);
-        end.setMinutes(end.getMinutes() + WORKDAY_MIN);
+        end.setMinutes(end.getMinutes() + GROSS_TARGET_MIN);
 
         outputEl.innerHTML =
-          `Gearbeitet: <span class="highlight">${fmt(workedMin)}</span> – ` +
-          `Verbleibend: <span class="highlight">${fmt(leftMin)}</span><br>` +
-          `⏰ Feierabend um <span class="highlight">${end.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}</span>`;
+          `Netto gearbeitet: <span class="highlight">${fmt(netMin)}</span> – ` +
+          `Pausenabzug: <span class="highlight">${fmt(breakMin)}</span><br>` +
+          (leftMin > 0
+            ? `Verbleibend: <span class="highlight">${fmt(leftMin)}</span><br>⏰ Feierabend um <span class="highlight">${end.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}</span>`
+            : `<b>🎉 Soll erfüllt – Gleitzeit: +${fmt(Math.abs(leftMin))}</b>`);
 
-        if (leftMin <= 0) {
-          clearInterval(intervalId);
-          outputEl.innerHTML += "<br><b>🎉 Feierabend! Gute Erholung.</b>";
-        }
         updateMonthlyOverview();
       }
 
-      function calculateMinutesToday(startStr) {
-        if (!startStr) return 0;
+      /* === Hilfsfunktionen === */
+      function diffNowToStart(startStr) {
         const start = timeStringToDate(startStr);
         const diffMs = Date.now() - start.getTime();
-        return Math.max(0, Math.min(WORKDAY_MIN, Math.floor(diffMs / MS_PER_MIN)));
+        return Math.max(0, Math.floor(diffMs / MS_PER_MIN));
+      }
+
+      function breakDeduct(grossMin) {
+        if (grossMin > 9 * 60) return EXT_BREAK_45;
+        if (grossMin > 6 * 60) return DEFAULT_BREAK_30;
+        return 0;
       }
 
       function timeStringToDate(t) {
@@ -173,84 +183,90 @@
         return `${h}:${m.toString().padStart(2, "0")}`;
       }
 
-      // ---------- Persistence ----------
-      function saveWorkday(startStr) {
-        const key = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+      /* === Speicherung === */
+      function saveTodayStart(startStr) {
+        const key  = new Date().toISOString().slice(0, 10); // YYYY‑MM‑DD
         const data = JSON.parse(localStorage.getItem("workdays") || "{}");
         data[key] = startStr;
         localStorage.setItem("workdays", JSON.stringify(data));
         renderHistory();
       }
 
-      // ---------- Monthly overview ----------
+      /* === Monatsübersicht === */
       function updateMonthlyOverview() {
-        const now = new Date();
-        const y = now.getFullYear();
-        const m = now.getMonth(); // 0-based
-        const daysInMonth = new Date(y, m + 1, 0).getDate();
+        const now   = new Date();
+        const y     = now.getFullYear();
+        const m     = now.getMonth();
+        const days  = new Date(y, m + 1, 0).getDate();
 
-        // Soll-Minuten
+        // Arbeitstage im Monat
         let workdays = 0;
-        for (let d = 1; d <= daysInMonth; d++) {
-          const wday = new Date(y, m, d).getDay();
-          if (wday >= 1 && wday <= 5) workdays++;
+        for (let d = 1; d <= days; d++) {
+          const wd = new Date(y, m, d).getDay();
+          if (wd >= 1 && wd <= 5) workdays++;
         }
-        const soll = workdays * WORKDAY_MIN;
+        const sollMonat = workdays * NET_TARGET_MIN;
 
-        // Ist-Minuten
-        let ist = 0;
-        const saved = JSON.parse(localStorage.getItem("workdays") || "{}");
-        for (const date in saved) {
-          if (date.startsWith(`${y}-${String(m + 1).padStart(2, "0")}`)) {
-            if (date < now.toISOString().slice(0, 10)) {
-              ist += WORKDAY_MIN;
-            } else {
-              ist += calculateMinutesToday(saved[date]);
-            }
+        // Ist
+        let istMin = 0;
+        const saved  = JSON.parse(localStorage.getItem("workdays") || "{}");
+        const extras = JSON.parse(localStorage.getItem("pastHours") || "{}");
+
+        // Heute live
+        const todayKey = now.toISOString().slice(0, 10);
+        if (saved[todayKey]) {
+          istMin += Math.min(NET_TARGET_MIN, diffNowToStart(saved[todayKey]) - breakDeduct(diffNowToStart(saved[todayKey])));
+        }
+
+        // Vergangene Tage mit Startzeit -> voller Soll (8h) netto
+        for (const d in saved) {
+          if (d.startsWith(`${y}-${String(m + 1).padStart(2, "0")}`) && d < todayKey) {
+            istMin += NET_TARGET_MIN;
           }
         }
-        const extras = JSON.parse(localStorage.getItem("pastHours") || "{}");
-        for (const date in extras) {
-          if (date.startsWith(`${y}-${String(m + 1).padStart(2, "0")}`)) ist += extras[date];
+
+        // Nachgetragene Netto‑Stunden
+        for (const d in extras) {
+          if (d.startsWith(`${y}-${String(m + 1).padStart(2, "0")}`)) istMin += extras[d];
         }
 
-        const saldo = ist - soll;
+        const saldo = istMin - sollMonat;
         const saldoStr = `${saldo >= 0 ? "+" : "–"}${fmt(Math.abs(saldo))}`;
 
         monthlyEl.innerHTML =
           `📅 ${now.toLocaleDateString("de-DE", { month: "long", year: "numeric" })}<br>` +
-          `Soll: <b>${fmt(soll)}</b> – Ist: <b>${fmt(ist)}</b><br>` +
-          `Saldo: <b>${saldoStr}</b> ${saldo > 0 ? "❌ Über Soll" : "✅ Im Limit"}`;
+          `Soll: <b>${fmt(sollMonat)}</b> – Ist: <b>${fmt(istMin)}</b><br>` +
+          `Saldo: <b>${saldoStr}</b> ${saldo >= 0 ? "⬆️ Überstunden" : "⬇️ Minus"}`;
       }
 
-      // ---------- History ----------
+      /* === History === */
       function renderHistory() {
-        const saved = JSON.parse(localStorage.getItem("workdays") || "{}");
+        const saved  = JSON.parse(localStorage.getItem("workdays") || "{}");
         const extras = JSON.parse(localStorage.getItem("pastHours") || "{}");
 
-        const savedKeys = Object.keys(saved).sort();
-        const extraKeys = Object.keys(extras).sort();
+        const savedKeys  = Object.keys(saved).sort();
+        const extraKeys  = Object.keys(extras).sort();
 
         let html = "";
         if (savedKeys.length) {
-          html += "<b>Gespeicherte Tage</b><ul>";
+          html += "<b>Erfasste Startzeiten</b><ul>";
           for (const d of savedKeys) html += `<li>${d}: Start ${saved[d]}</li>`;
           html += "</ul>";
         }
         if (extraKeys.length) {
-          html += "<b>Nachgetragene Stunden</b><ul>";
-          for (const d of extraKeys) html += `<li>${d}: ${fmt(extras[d])} h</li>`;
+          html += "<b>Nachgetragene Netto‑Stunden</b><ul>";
+          for (const d of extraKeys) html += `<li>${d}: ${fmt(extras[d])}</li>`;
           html += "</ul>";
         }
         historyEl.innerHTML = html || "Noch keine Einträge.";
       }
 
-      // ---------- Past hours ----------
+      /* === Nachtrag Dialog === */
       function addPastHours() {
         const date = prompt("Datum (YYYY-MM-DD):");
         if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return;
 
-        const hours = prompt("Gearbeitete Stunden (HH:MM):");
+        const hours = prompt("Gearbeitete Netto‑Stunden (HH:MM):");
         if (!hours || !/^\d{1,2}:\d{2}$/.test(hours)) return;
 
         const [h, m] = hours.split(":").map(Number);
