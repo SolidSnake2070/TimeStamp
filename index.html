@@ -4,122 +4,24 @@
   <meta charset="UTF-8" />
   <title>Feierabend‑Timer Gleitzeit</title>
   <style>
-    body {
-      font-family: system-ui, sans-serif;
-      background: #f4f7fa;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
-      margin: 0;
-    }
-    .container {
-      background: #fff;
-      padding: 24px 32px;
-      border-radius: 12px;
-      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
-      width: 430px;
-      max-width: 100vw;
-    }
-    h2 {
-      margin-top: 0;
-      color: #2c82c9;
-      text-align: center;
-    }
-    #today {
-      margin-bottom: 12px;
-      text-align: center;
-      font-weight: 600;
-    }
-    input[type="time"], input[type="number"] {
-      width: 100%;
-      padding: 8px 12px;
-      font-size: 16px;
-      border: 1px solid #d0d4da;
-      border-radius: 6px;
-      margin-bottom: 6px;
-      box-sizing: border-box;
-    }
-    input#sollstunden {
-      width: 85px !important;
-      font-size: 16px;
-      display: inline-block;
-      text-align: right;
-    }
-    .input-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 6px;
-    }
-    label[for="sollstunden"] {
-      text-align: right;
-      font-size: 15px;
-      font-weight: 500;
-      flex: 0 0 148px;
-    }
-    .action-btns {
-      display: flex;
-      gap: 10px;
-      margin: 10px 0;
-    }
-    button {
-      flex: 1 1 0;
-      padding: 8px;
-      background: #2c82c9;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      font-size: 15px;
-      cursor: pointer;
-    }
-    .output,
-    .summary {
-      margin-top: 10px;
-      font-size: 14px;
-    }
-    .highlight {
-      font-weight: bold;
-    }
-    .big {
-      font-size: 1.3em;
-      font-weight: bold;
-      color: #246b9a;
-    }
-    .hint {
-      margin-top: 10px;
-      color: #555;
-      background: #eef3f7;
-      border-radius: 6px;
-      padding: 8px 10px;
-      font-size: 13px;
-      line-height: 1.5;
-    }
-    .util-buttons {
-      display: flex;
-      gap: 8px;
-      margin-top: 8px;
-    }
-    .util-buttons button {
-      width: 50%;
-      font-size: 14px;
-      padding: 6px;
-      background: #c6d2e2;
-      color: #32465a;
-      border: none;
-      border-radius: 6px;
-    }
-    .util-buttons button:hover {
-      background: #b1c6db;
-    }
-    .history {
-      margin-top: 12px;
-      font-size: 14px;
-      max-height: 200px;
-      overflow-y: auto;
-      border-top: 1px solid #dbe1e8;
-      padding-top: 6px;
-    }
+    body { font-family: system-ui, sans-serif; background: #f4f7fa; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; margin: 0; }
+    .container { background: #fff; padding: 24px 32px; border-radius: 12px; box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08); width: 430px; max-width: 100vw; }
+    h2 { margin-top: 0; color: #2c82c9; text-align: center; }
+    #today { margin-bottom: 12px; text-align: center; font-weight: 600; }
+    input[type="time"], input[type="number"] { width: 100%; padding: 8px 12px; font-size: 16px; border: 1px solid #d0d4da; border-radius: 6px; margin-bottom: 6px; box-sizing: border-box; }
+    input#sollstunden { width: 85px !important; font-size: 16px; display: inline-block; text-align: right; }
+    .input-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    label[for="sollstunden"] { text-align: right; font-size: 15px; font-weight: 500; flex: 0 0 148px; }
+    .action-btns { display: flex; gap: 10px; margin: 10px 0; }
+    button { flex: 1 1 0; padding: 8px; background: #2c82c9; color: #fff; border: none; border-radius: 6px; font-size: 15px; cursor: pointer; }
+    .output, .summary { margin-top: 10px; font-size: 14px; }
+    .highlight { font-weight: bold; }
+    .big { font-size: 1.3em; font-weight: bold; color: #246b9a; }
+    .hint { margin-top: 10px; color: #555; background: #eef3f7; border-radius: 6px; padding: 8px 10px; font-size: 13px; line-height: 1.5; }
+    .util-buttons { display: flex; gap: 8px; margin-top: 8px; }
+    .util-buttons button { width: 50%; font-size: 14px; padding: 6px; background: #c6d2e2; color: #32465a; border: none; border-radius: 6px; }
+    .util-buttons button:hover { background: #b1c6db; }
+    .history { margin-top: 12px; font-size: 14px; max-height: 200px; overflow-y: auto; border-top: 1px solid #dbe1e8; padding-top: 6px; }
     .history ul { padding-left: 18px; margin: 4px 0 12px;}
     .history li { line-height: 1.3em; }
   </style>
@@ -129,10 +31,9 @@
     <h2>🕔 Feierabend‑Timer Gleitzeit</h2>
     <div id="today"></div>
     <div class="input-row">
-      <label for="sollstunden">Monatliches Soll (Stunden):</label>
-      <input type="number" id="sollstunden" min="1" step="1" />
+      <label for="sollstunden">Soll pro Tag (Stunden):</label>
+      <input type="number" id="sollstunden" min="1" step="1" value="8"/>
     </div>
-
     <div class="input-row">
       <label for="startTime">Kommt-Zeit heute:</label>
       <input type="time" id="startTime" />
@@ -172,7 +73,6 @@
 
       let intervalId = null;
 
-      // Heute setzen
       todayEl.textContent = new Date().toLocaleDateString("de-DE", {
         weekday: "long",
         year: "numeric",
@@ -180,21 +80,8 @@
         day: "numeric",
       });
 
-      // Monatliche Sollstunden initialisieren
-      const now = new Date();
-      const y = now.getFullYear(), m = now.getMonth();
-      const days = new Date(y, m + 1, 0).getDate();
-      const workdays = Array.from({ length: days }, (_, d) => new Date(y, m, d + 1))
-        .filter(d => d.getDay() >= 1 && d.getDay() <= 5).length;
-      const savedSoll = localStorage.getItem("sollstunden");
-      sollInput.value = savedSoll || (workdays * 8);
-
       sollInput.style.width = "85px";
-
-      sollInput.addEventListener("change", () => {
-        localStorage.setItem("sollstunden", sollInput.value);
-        updateMonthlyOverview();
-      });
+      sollInput.addEventListener("change", updateMonthlyOverview);
 
       $("startBtn").addEventListener("click", startTimer);
       $("addDayBtn").addEventListener("click", addPastDay);
@@ -205,7 +92,6 @@
       updateMonthlyOverview();
       renderHistory();
 
-      // Live-Tag starten
       function startTimer() {
         if (intervalId) clearInterval(intervalId);
         const startStr = $("startTime").value;
@@ -237,7 +123,6 @@
         updateMonthlyOverview(netMin);
       }
 
-      // Hilfsfunktionen
       function diffNowToStart(startStr) {
         const start = timeStringToDate(startStr);
         const diffMs = Date.now() - start.getTime();
@@ -262,15 +147,23 @@
         return `${h}:${m.toString().padStart(2, "0")}`;
       }
 
-      // Nachtrag für EINEN Tag
       function addPastDay() {
         const date = prompt("Datum (YYYY-MM-DD) des Tages:");
         if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return;
 
-        const hours = prompt("Gearbeitete Netto‑Stunden an diesem Tag (HH:MM):");
-        if (!hours || !/^\d{1,2}:\d{2}$/.test(hours)) return;
+        const hours = prompt("Gearbeitete Netto‑Stunden an diesem Tag (z.B. 8 oder 7:45):");
+        if (!hours) return;
 
-        const [h, m] = hours.split(":").map(Number);
+        let h = 0, m = 0;
+        if (/^\d{1,2}:\d{2}$/.test(hours)) {
+          [h, m] = hours.split(":").map(Number);
+        } else if (/^\d{1,2}$/.test(hours)) {
+          h = Number(hours); m = 0;
+        } else {
+          alert("Bitte Stunden im Format HH:MM oder nur HH eingeben!");
+          return;
+        }
+
         const minutes = h * 60 + m;
         const data = JSON.parse(localStorage.getItem("pastHours") || "{}");
         data[date] = minutes;
@@ -279,14 +172,22 @@
         renderHistory();
       }
 
-      // Nachtrag für SUMME mehrerer Tage (z.B. aus SAP, Wochenblock)
       function addSumDays() {
         const days = prompt("Wie viele vergangene Tage soll die Summe gelten? (Zahl, z.B. 5 für Mo-Fr):");
         if (!days || isNaN(days) || Number(days) < 1) return;
 
-        const sum = prompt("Gesamte gearbeitete Netto‑Stunden (HH:MM):");
-        if (!sum || !/^\d{1,2}:\d{2}$/.test(sum)) return;
-        const [h, m] = sum.split(":").map(Number);
+        const sum = prompt("Gesamte gearbeitete Netto‑Stunden (z.B. 40 oder 37:45):");
+        if (!sum) return;
+
+        let h = 0, m = 0;
+        if (/^\d{1,3}:\d{2}$/.test(sum)) {
+          [h, m] = sum.split(":").map(Number);
+        } else if (/^\d{1,3}$/.test(sum)) {
+          h = Number(sum); m = 0;
+        } else {
+          alert("Bitte Stunden im Format HH:MM oder nur HH eingeben!");
+          return;
+        }
         const totalMin = h * 60 + m;
 
         // Nachgetragen als Eintrag: "Summe N Tage bis <heute>"
@@ -298,43 +199,47 @@
         renderHistory();
       }
 
-      // Monatsübersicht und Differenz zu Soll
       function updateMonthlyOverview(todayNetto = null) {
-        const sollMonat = sollInput.value * 60;
+        // Summiere gearbeitete Minuten und gezählte Tage
+        let sollProTag = parseInt(sollInput.value) || 8;
+        let istMin = 0, tage = 0;
 
-        // Summe IST
-        let istMin = 0;
-
-        // Live heute (falls erfasst)
+        // Live heute (optional)
         const liveStart = localStorage.getItem("liveStart");
         if (liveStart && todayNetto !== null) {
           istMin += todayNetto;
+          tage += 1;
         }
 
         // Einzelne Tage (Nachtrag)
         const extras = JSON.parse(localStorage.getItem("pastHours") || "{}");
-        for (const d in extras) {
-          istMin += extras[d];
-        }
+        istMin += Object.values(extras).reduce((a, b) => a + b, 0);
+        tage += Object.keys(extras).length;
 
         // Summierte Wochenblöcke (Nachtrag)
         const sums = JSON.parse(localStorage.getItem("pastSumHours") || "{}");
-        for (const d in sums) {
-          istMin += sums[d];
+        let sumDays = 0;
+        for (const k in sums) {
+          istMin += sums[k];
+          // Schlüssel-Format: "Summe_5_Tage_bis_YYYY-MM-DD"
+          let match = k.match(/^Summe_(\d+)_Tage/);
+          if (match) sumDays += parseInt(match[1]);
         }
+        tage += sumDays;
+
+        const sollBisJetzt = tage * sollProTag * 60;
 
         monthlyEl.innerHTML =
           `📅 <b>${(new Date()).toLocaleDateString("de-DE", { month: "long", year: "numeric" })}</b><br>` +
-          `Monatliches Soll: <b>${fmt(sollMonat)}</b><br>` +
+          `Soll bis jetzt: <b>${fmt(sollBisJetzt)}</b> (${tage} Tage × ${sollProTag}:00)<br>` +
           `Gearbeitet: <b>${fmt(istMin)}</b>`;
 
-        const saldoMonat = istMin - sollMonat;
+        const saldo = istMin - sollBisJetzt;
 
         hinweisEl.innerHTML =
-          `Differenz: <span style="font-weight:bold; color:${saldoMonat>=0?"#177a26":"#be2134"};">${saldoMonat>=0?"+":"–"}${fmt(Math.abs(saldoMonat))}</span> Stunde${Math.abs(saldoMonat)!==60?"n":""} ${saldoMonat>=0?"⬆️ Überstunden":"⬇️ Minus"}`;
+          `Differenz: <span style="font-weight:bold; color:${saldo>=0?"#177a26":"#be2134"};">${saldo>=0?"+":"–"}${fmt(Math.abs(saldo))}</span> Stunde${Math.abs(saldo)!==60?"n":""} ${saldo>=0?"⬆️ Überstunden":"⬇️ Minus"}`;
       }
 
-      // Übersicht: Nur Nachträge!
       function renderHistory() {
         const extras = JSON.parse(localStorage.getItem("pastHours") || "{}");
         const sums = JSON.parse(localStorage.getItem("pastSumHours") || "{}");
@@ -353,7 +258,6 @@
         historyEl.innerHTML = html || "Noch keine Nachträge.";
       }
 
-      // Export / Reset
       function exportData() {
         const data = {
           pastHours: JSON.parse(localStorage.getItem("pastHours") || "{}"),
@@ -373,7 +277,6 @@
           localStorage.removeItem("liveStart");
           localStorage.removeItem("pastHours");
           localStorage.removeItem("pastSumHours");
-          // localStorage.removeItem("sollstunden");
           $("startTime").value = "";
           renderHistory();
           updateMonthlyOverview();
