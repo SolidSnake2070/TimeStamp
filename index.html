@@ -1,19 +1,44 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:700&display=swap" rel="stylesheet">
   <meta charset="UTF-8" />
   <title>Feierabend‑Timer Gleitzeit</title>
   <style>
     body { font-family: system-ui, sans-serif; background: #f4f7fa; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; margin: 0; }
     .container { background: #fff; padding: 24px 32px; border-radius: 12px; box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08); width: 430px; max-width: 100vw; }
-    h2 { margin-top: 0; color: #2c82c9; text-align: center; }
+    h2 { 
+  margin-top: 0; 
+  color: #E30613;            /* <--- EDAG-Rot */
+  text-align: center;
+  font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;  /* <--- Schriftart */
+  letter-spacing: 2px;
+  font-weight: 700;
+}
     #today { margin-bottom: 12px; text-align: center; font-weight: 600; }
     input[type="time"], input[type="number"] { width: 100%; padding: 8px 12px; font-size: 16px; border: 1px solid #d0d4da; border-radius: 6px; margin-bottom: 6px; box-sizing: border-box; }
     input#sollstunden { width: 85px !important; font-size: 16px; display: inline-block; text-align: right; }
     .input-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
     label[for="sollstunden"] { text-align: right; font-size: 15px; font-weight: 500; flex: 0 0 148px; }
     .action-btns { display: flex; gap: 10px; margin: 10px 0; }
-    button { flex: 1 1 0; padding: 8px; background: #2c82c9; color: #fff; border: none; border-radius: 6px; font-size: 15px; cursor: pointer; }
+    button {
+  flex: 1 1 0;
+  padding: 8px;
+  background: #E30613;       /* <--- EDAG-Rot */
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  cursor: pointer;
+  font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+  font-weight: 700;
+  letter-spacing: 1px;
+  transition: background 0.2s;
+}
+button:hover {
+  background: #B80010;       /* <--- dunkleres Rot für Hover */
+}
+
     .output, .summary { margin-top: 10px; font-size: 14px; }
     .highlight { font-weight: bold; }
     .big { font-size: 1.3em; font-weight: bold; color: #246b9a; }
