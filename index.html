@@ -30,12 +30,14 @@
       text-align: center;
       font-weight: 600;
     }
-    input[type="time"] {
+    input[type="time"], input[type="number"] {
       width: 100%;
       padding: 8px 12px;
       font-size: 16px;
       border: 1px solid #d0d4da;
       border-radius: 6px;
+      margin-bottom: 6px;
+      box-sizing: border-box;
     }
     button {
       margin-top: 10px;
@@ -59,6 +61,13 @@
     .highlight {
       font-weight: bold;
     }
+    label[for="sollstunden"] {
+      display: block;
+      text-align: center;
+      margin-bottom: 6px;
+      font-size: 15px;
+      font-weight: 500;
+    }
     /* History */
     .history {
       margin-top: 16px;
@@ -75,15 +84,43 @@
     .history li {
       line-height: 1.4em;
     }
+    /* Export/Reset Buttons */
+    .util-buttons {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .util-buttons button {
+      width: 50%;
+      margin-top: 0;
+      font-size: 14px;
+      padding: 6px;
+      background: #c6d2e2;
+      color: #32465a;
+      border: none;
+      border-radius: 6px;
+    }
+    .util-buttons button:hover {
+      background: #b1c6db;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>🕔 Feierabend‑Timer</h2>
     <div id="today"></div>
+    <label for="sollstunden">
+      Monatliches Soll:
+      <input type="number" id="sollstunden" min="1" step="1" style="width:60px; font-size:15px; display:inline-block;" /> Std
+    </label>
     <input type="time" id="startTime" />
     <button id="startBtn">Start</button>
     <button id="addBtn">Stunden nachtragen</button>
+
+    <div class="util-buttons">
+      <button id="exportBtn">Export</button>
+      <button id="resetBtn">Reset</button>
+    </div>
 
     <div class="output" id="output"></div>
     <div class="summary" id="monthly"></div>
@@ -93,24 +130,24 @@
   <script>
     (function () {
       "use strict";
-      /* === Konstanten === */
+      // === Konstanten ===
       const MS_PER_MIN = 60 * 1000;
       const NET_TARGET_MIN = 8 * 60;          // 8 h netto
       const DEFAULT_BREAK_30 = 30;            // Minuten
       const EXT_BREAK_45 = 45;
-      // Ziel‑Feierabend (8 h netto -> 30 min Pause => 8 h 30 inkl.)
       const GROSS_TARGET_MIN = NET_TARGET_MIN + DEFAULT_BREAK_30; // 510 min
 
-      /* === DOM‑Helper === */
+      // === DOM‑Helper ===
       const $ = (id) => document.getElementById(id);
       const todayEl   = $("today");
       const outputEl  = $("output");
       const monthlyEl = $("monthly");
       const historyEl = $("history");
+      const sollInput = $("sollstunden");
 
       let intervalId = null;
 
-      /* === Init === */
+      // === Heute setzen ===
       todayEl.textContent = new Date().toLocaleDateString("de-DE", {
         weekday: "long",
         year: "numeric",
@@ -118,17 +155,37 @@
         day: "numeric",
       });
 
+      // === Monatliche Sollstunden initialisieren ===
+      const now = new Date();
+      const y = now.getFullYear(), m = now.getMonth();
+      const days = new Date(y, m + 1, 0).getDate();
+      const workdays = Array.from({ length: days }, (_, d) => new Date(y, m, d + 1))
+        .filter(d => d.getDay() >= 1 && d.getDay() <= 5).length;
+      const savedSoll = localStorage.getItem("sollstunden");
+      sollInput.value = savedSoll || (workdays * 8);
+
+      sollInput.addEventListener("change", () => {
+        localStorage.setItem("sollstunden", sollInput.value);
+        updateMonthlyOverview();
+      });
+
       $("startBtn").addEventListener("click", startTimer);
       $("addBtn").addEventListener("click", addPastHours);
+      $("exportBtn").addEventListener("click", exportData);
+      $("resetBtn").addEventListener("click", resetAll);
 
       updateMonthlyOverview();
       renderHistory();
 
-      /* === Arbeits‑Timer === */
+      // === Arbeits‑Timer ===
       function startTimer() {
         if (intervalId) clearInterval(intervalId);
         const startStr = $("startTime").value;
         if (!startStr) return alert("Bitte Startzeit eingeben.");
+
+        // Warnung bei Startzeit in der Zukunft
+        const startDate = timeStringToDate(startStr);
+        if (startDate > new Date()) return alert("Startzeit liegt in der Zukunft!");
 
         saveTodayStart(startStr);
         renderTimer(startStr);
@@ -155,7 +212,7 @@
         updateMonthlyOverview();
       }
 
-      /* === Hilfsfunktionen === */
+      // === Hilfsfunktionen ===
       function diffNowToStart(startStr) {
         const start = timeStringToDate(startStr);
         const diffMs = Date.now() - start.getTime();
@@ -183,7 +240,7 @@
         return `${h}:${m.toString().padStart(2, "0")}`;
       }
 
-      /* === Speicherung === */
+      // === Speicherung ===
       function saveTodayStart(startStr) {
         const key  = new Date().toISOString().slice(0, 10); // YYYY‑MM‑DD
         const data = JSON.parse(localStorage.getItem("workdays") || "{}");
@@ -192,20 +249,14 @@
         renderHistory();
       }
 
-      /* === Monatsübersicht === */
+      // === Monatsübersicht ===
       function updateMonthlyOverview() {
         const now   = new Date();
         const y     = now.getFullYear();
         const m     = now.getMonth();
-        const days  = new Date(y, m + 1, 0).getDate();
 
-        // Arbeitstage im Monat
-        let workdays = 0;
-        for (let d = 1; d <= days; d++) {
-          const wd = new Date(y, m, d).getDay();
-          if (wd >= 1 && wd <= 5) workdays++;
-        }
-        const sollMonat = workdays * NET_TARGET_MIN;
+        // Eingabe-Feld wird verwendet!
+        const sollMonat = sollInput.value * 60;
 
         // Ist
         let istMin = 0;
@@ -215,7 +266,9 @@
         // Heute live
         const todayKey = now.toISOString().slice(0, 10);
         if (saved[todayKey]) {
-          istMin += Math.min(NET_TARGET_MIN, diffNowToStart(saved[todayKey]) - breakDeduct(diffNowToStart(saved[todayKey])));
+          const grossMin = diffNowToStart(saved[todayKey]);
+          const breakMin = breakDeduct(grossMin);
+          istMin += Math.max(0, grossMin - breakMin);
         }
 
         // Vergangene Tage mit Startzeit -> voller Soll (8h) netto
@@ -239,7 +292,7 @@
           `Saldo: <b>${saldoStr}</b> ${saldo >= 0 ? "⬆️ Überstunden" : "⬇️ Minus"}`;
       }
 
-      /* === History === */
+      // === History ===
       function renderHistory() {
         const saved  = JSON.parse(localStorage.getItem("workdays") || "{}");
         const extras = JSON.parse(localStorage.getItem("pastHours") || "{}");
@@ -250,7 +303,7 @@
         let html = "";
         if (savedKeys.length) {
           html += "<b>Erfasste Startzeiten</b><ul>";
-          for (const d of savedKeys) html += `<li>${d}: Start ${saved[d]}</li>`;
+          for (const d of savedKeys) html += `<li>${d}: Start ${saved[d]} Uhr</li>`;
           html += "</ul>";
         }
         if (extraKeys.length) {
@@ -261,7 +314,7 @@
         historyEl.innerHTML = html || "Noch keine Einträge.";
       }
 
-      /* === Nachtrag Dialog === */
+      // === Nachtrag Dialog ===
       function addPastHours() {
         const date = prompt("Datum (YYYY-MM-DD):");
         if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return;
@@ -276,6 +329,34 @@
         localStorage.setItem("pastHours", JSON.stringify(data));
         updateMonthlyOverview();
         renderHistory();
+      }
+
+      // === Export/Import/Reset ===
+      function exportData() {
+        const data = {
+          workdays: JSON.parse(localStorage.getItem("workdays") || "{}"),
+          pastHours: JSON.parse(localStorage.getItem("pastHours") || "{}"),
+          sollstunden: localStorage.getItem("sollstunden") || (workdays * 8)
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "feierabend-timer.json";
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      function resetAll() {
+        if (confirm("Alle Einträge wirklich löschen?")) {
+          localStorage.removeItem("workdays");
+          localStorage.removeItem("pastHours");
+          // localStorage.removeItem("sollstunden"); // optional: Soll behalten?
+          $("startTime").value = "";
+          renderHistory();
+          updateMonthlyOverview();
+          outputEl.innerHTML = "";
+        }
       }
     })();
   </script>
