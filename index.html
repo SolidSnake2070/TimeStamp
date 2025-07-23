@@ -1,60 +1,387 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <title>Gleitzeit-Test pur</title>
+  <meta charset="UTF-8" />
+  <title>Feierabend‑Timer Gleitzeit</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f4f7fa;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: #fff;
+      padding: 24px 32px;
+      border-radius: 12px;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+      width: 430px;
+      max-width: 100vw;
+    }
+    h2 {
+      margin-top: 0;
+      color: #2c82c9;
+      text-align: center;
+    }
+    #today {
+      margin-bottom: 12px;
+      text-align: center;
+      font-weight: 600;
+    }
+    input[type="time"], input[type="number"] {
+      width: 100%;
+      padding: 8px 12px;
+      font-size: 16px;
+      border: 1px solid #d0d4da;
+      border-radius: 6px;
+      margin-bottom: 6px;
+      box-sizing: border-box;
+    }
+    input#sollstunden {
+      width: 85px !important;
+      font-size: 16px;
+      display: inline-block;
+      text-align: right;
+    }
+    .input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    label[for="sollstunden"] {
+      text-align: right;
+      font-size: 15px;
+      font-weight: 500;
+      flex: 0 0 148px;
+    }
+    .action-btns {
+      display: flex;
+      gap: 10px;
+      margin: 10px 0;
+    }
+    button {
+      flex: 1 1 0;
+      padding: 8px;
+      background: #2c82c9;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 15px;
+      cursor: pointer;
+    }
+    .output,
+    .summary {
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    .highlight {
+      font-weight: bold;
+    }
+    .big {
+      font-size: 1.3em;
+      font-weight: bold;
+      color: #246b9a;
+    }
+    .hint {
+      margin-top: 10px;
+      color: #555;
+      background: #eef3f7;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .util-buttons {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .util-buttons button {
+      width: 50%;
+      font-size: 14px;
+      padding: 6px;
+      background: #c6d2e2;
+      color: #32465a;
+      border: none;
+      border-radius: 6px;
+    }
+    .util-buttons button:hover {
+      background: #b1c6db;
+    }
+    .history {
+      margin-top: 12px;
+      font-size: 14px;
+      max-height: 200px;
+      overflow-y: auto;
+      border-top: 1px solid #dbe1e8;
+      padding-top: 6px;
+    }
+    .history ul { padding-left: 18px; margin: 4px 0 12px;}
+    .history li { line-height: 1.3em; }
+  </style>
 </head>
 <body>
-  <h2>Gleitzeit Debug</h2>
-  <label>Monatliches Soll: <input type="number" id="soll" value="184"></label>
-  <button onclick="saveSoll()">OK</button>
-  <button onclick="add()">Nachtrag Tag</button>
-  <button onclick="reset()">Reset</button>
-  <ul id="list"></ul>
-  <div id="sum"></div>
-  <div id="diff"></div>
+  <div class="container">
+    <h2>🕔 Feierabend‑Timer Gleitzeit</h2>
+    <div id="today"></div>
+    <div class="input-row">
+      <label for="sollstunden">Monatliches Soll (Stunden):</label>
+      <input type="number" id="sollstunden" min="1" step="1" />
+    </div>
+
+    <div class="input-row">
+      <label for="startTime">Kommt-Zeit heute:</label>
+      <input type="time" id="startTime" />
+    </div>
+    <div class="action-btns">
+      <button id="startBtn">Live-Tag starten</button>
+      <button id="addDayBtn">Stunden für einen Tag nachtragen</button>
+    </div>
+    <div class="action-btns">
+      <button id="addSumBtn">Summe für mehrere Tage nachtragen</button>
+      <button id="resetBtn">Reset</button>
+    </div>
+    <div class="util-buttons">
+      <button id="exportBtn">Export</button>
+    </div>
+    <div class="output" id="output"></div>
+    <div class="summary" id="monthly"></div>
+    <div class="history" id="history"></div>
+    <div class="hint" id="hinweis"></div>
+  </div>
+
   <script>
-    function fmt(min) {
-      let h = Math.floor(min/60), m = min%60;
-      return h.toString().padStart(2,'0')+':'+m.toString().padStart(2,'0');
-    }
-    function saveSoll() {
-      let v=+document.getElementById("soll").value;
-      localStorage.setItem("soll", v);
-      show();
-    }
-    function add() {
-      let d=prompt("Datum (YYYY-MM-DD)");
-      if(!d) return;
-      let h=prompt("Netto-Stunden (HH:MM)");
-      if(!h) return;
-      let [hh,mm]=h.split(":").map(Number);
-      let data = JSON.parse(localStorage.getItem("tage") || "{}");
-      data[d] = hh*60+mm;
-      localStorage.setItem("tage", JSON.stringify(data));
-      show();
-    }
-    function reset() {
-      if(confirm("Alles löschen?")) {
-        localStorage.removeItem("tage");
-        show();
-      }
-    }
-    function show() {
-      let soll = +localStorage.getItem("soll") || 184;
-      document.getElementById("soll").value = soll;
-      let data = JSON.parse(localStorage.getItem("tage") || "{}");
-      let sum = 0, items = [];
-      Object.keys(data).sort().forEach(k => {
-        sum += data[k];
-        items.push(`<li>${k}: ${fmt(data[k])}</li>`);
+    (function () {
+      "use strict";
+      const MS_PER_MIN = 60 * 1000;
+      const NET_TARGET_MIN = 8 * 60;
+      const DEFAULT_BREAK_30 = 30;
+      const EXT_BREAK_45 = 45;
+
+      const $ = (id) => document.getElementById(id);
+      const todayEl   = $("today");
+      const outputEl  = $("output");
+      const monthlyEl = $("monthly");
+      const historyEl = $("history");
+      const sollInput = $("sollstunden");
+      const hinweisEl = $("hinweis");
+
+      let intervalId = null;
+
+      // Heute setzen
+      todayEl.textContent = new Date().toLocaleDateString("de-DE", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
       });
-      document.getElementById("list").innerHTML = items.join("");
-      document.getElementById("sum").innerHTML = `Gearbeitet: <b>${fmt(sum)}</b>`;
-      document.getElementById("diff").innerHTML = `Differenz zu Soll: <b>${fmt(sum-soll*60)}</b>`;
-    }
-    if(!localStorage.getItem("soll")) localStorage.setItem("soll", 184);
-    show();
+
+      // Monatliche Sollstunden initialisieren
+      const now = new Date();
+      const y = now.getFullYear(), m = now.getMonth();
+      const days = new Date(y, m + 1, 0).getDate();
+      const workdays = Array.from({ length: days }, (_, d) => new Date(y, m, d + 1))
+        .filter(d => d.getDay() >= 1 && d.getDay() <= 5).length;
+      const savedSoll = localStorage.getItem("sollstunden");
+      sollInput.value = savedSoll || (workdays * 8);
+
+      sollInput.style.width = "85px";
+
+      sollInput.addEventListener("change", () => {
+        localStorage.setItem("sollstunden", sollInput.value);
+        updateMonthlyOverview();
+      });
+
+      $("startBtn").addEventListener("click", startTimer);
+      $("addDayBtn").addEventListener("click", addPastDay);
+      $("addSumBtn").addEventListener("click", addSumDays);
+      $("exportBtn").addEventListener("click", exportData);
+      $("resetBtn").addEventListener("click", resetAll);
+
+      updateMonthlyOverview();
+      renderHistory();
+
+      // Live-Tag starten
+      function startTimer() {
+        if (intervalId) clearInterval(intervalId);
+        const startStr = $("startTime").value;
+        if (!startStr) return alert("Bitte Startzeit für heute eingeben.");
+        const startDate = timeStringToDate(startStr);
+        if (startDate > new Date()) return alert("Startzeit liegt in der Zukunft!");
+
+        localStorage.setItem("liveStart", startStr);
+        renderTimer(startStr);
+        intervalId = setInterval(() => renderTimer(startStr), 1000);
+      }
+
+      function renderTimer(startStr) {
+        const grossMin = diffNowToStart(startStr);
+        const breakMin = breakDeduct(grossMin);
+        const netMin   = Math.max(0, grossMin - breakMin);
+        const leftMin  = NET_TARGET_MIN - netMin;
+
+        const end = timeStringToDate(startStr);
+        end.setMinutes(end.getMinutes() + NET_TARGET_MIN + DEFAULT_BREAK_30);
+
+        outputEl.innerHTML =
+          `<span class="big">Netto heute: ${fmt(netMin)}</span> &nbsp;` +
+          `(Pause: ${fmt(breakMin)})<br>` +
+          (leftMin > 0
+            ? `Verbleibend: <span class="highlight">${fmt(leftMin)}</span> | Feierabend ca. <b>${end.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}</b>`
+            : `<b>🎉 Soll erfüllt – Gleitzeit: +${fmt(Math.abs(leftMin))}</b>`);
+
+        updateMonthlyOverview(netMin);
+      }
+
+      // Hilfsfunktionen
+      function diffNowToStart(startStr) {
+        const start = timeStringToDate(startStr);
+        const diffMs = Date.now() - start.getTime();
+        return Math.max(0, Math.floor(diffMs / MS_PER_MIN));
+      }
+      function breakDeduct(grossMin) {
+        if (grossMin > 9 * 60) return EXT_BREAK_45;
+        if (grossMin > 6 * 60) return DEFAULT_BREAK_30;
+        return 0;
+      }
+      function timeStringToDate(t) {
+        const [h, m] = t.split(":").map(Number);
+        const d = new Date();
+        d.setHours(h, m, 0, 0);
+        return d;
+      }
+      function fmt(min) {
+        const h = Math.floor(Math.abs(min) / 60)
+          .toString()
+          .padStart(2, "0");
+        const m = Math.abs(min) % 60;
+        return `${h}:${m.toString().padStart(2, "0")}`;
+      }
+
+      // Nachtrag für EINEN Tag
+      function addPastDay() {
+        const date = prompt("Datum (YYYY-MM-DD) des Tages:");
+        if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return;
+
+        const hours = prompt("Gearbeitete Netto‑Stunden an diesem Tag (HH:MM):");
+        if (!hours || !/^\d{1,2}:\d{2}$/.test(hours)) return;
+
+        const [h, m] = hours.split(":").map(Number);
+        const minutes = h * 60 + m;
+        const data = JSON.parse(localStorage.getItem("pastHours") || "{}");
+        data[date] = minutes;
+        localStorage.setItem("pastHours", JSON.stringify(data));
+        updateMonthlyOverview();
+        renderHistory();
+      }
+
+      // Nachtrag für SUMME mehrerer Tage (z.B. aus SAP, Wochenblock)
+      function addSumDays() {
+        const days = prompt("Wie viele vergangene Tage soll die Summe gelten? (Zahl, z.B. 5 für Mo-Fr):");
+        if (!days || isNaN(days) || Number(days) < 1) return;
+
+        const sum = prompt("Gesamte gearbeitete Netto‑Stunden (HH:MM):");
+        if (!sum || !/^\d{1,2}:\d{2}$/.test(sum)) return;
+        const [h, m] = sum.split(":").map(Number);
+        const totalMin = h * 60 + m;
+
+        // Nachgetragen als Eintrag: "Summe N Tage bis <heute>"
+        const key = `Summe_${days}_Tage_bis_${(new Date()).toISOString().slice(0,10)}`;
+        const data = JSON.parse(localStorage.getItem("pastSumHours") || "{}");
+        data[key] = totalMin;
+        localStorage.setItem("pastSumHours", JSON.stringify(data));
+        updateMonthlyOverview();
+        renderHistory();
+      }
+
+      // Monatsübersicht und Differenz zu Soll
+      function updateMonthlyOverview(todayNetto = null) {
+        const sollMonat = sollInput.value * 60;
+
+        // Summe IST
+        let istMin = 0;
+
+        // Live heute (falls erfasst)
+        const liveStart = localStorage.getItem("liveStart");
+        if (liveStart && todayNetto !== null) {
+          istMin += todayNetto;
+        }
+
+        // Einzelne Tage (Nachtrag)
+        const extras = JSON.parse(localStorage.getItem("pastHours") || "{}");
+        for (const d in extras) {
+          istMin += extras[d];
+        }
+
+        // Summierte Wochenblöcke (Nachtrag)
+        const sums = JSON.parse(localStorage.getItem("pastSumHours") || "{}");
+        for (const d in sums) {
+          istMin += sums[d];
+        }
+
+        monthlyEl.innerHTML =
+          `📅 <b>${(new Date()).toLocaleDateString("de-DE", { month: "long", year: "numeric" })}</b><br>` +
+          `Monatliches Soll: <b>${fmt(sollMonat)}</b><br>` +
+          `Gearbeitet: <b>${fmt(istMin)}</b>`;
+
+        const saldoMonat = istMin - sollMonat;
+
+        hinweisEl.innerHTML =
+          `Differenz: <span style="font-weight:bold; color:${saldoMonat>=0?"#177a26":"#be2134"};">${saldoMonat>=0?"+":"–"}${fmt(Math.abs(saldoMonat))}</span> Stunde${Math.abs(saldoMonat)!==60?"n":""} ${saldoMonat>=0?"⬆️ Überstunden":"⬇️ Minus"}`;
+      }
+
+      // Übersicht: Nur Nachträge!
+      function renderHistory() {
+        const extras = JSON.parse(localStorage.getItem("pastHours") || "{}");
+        const sums = JSON.parse(localStorage.getItem("pastSumHours") || "{}");
+
+        let html = "";
+        if (Object.keys(extras).length) {
+          html += "<b>Nachgetragene Einzeltage</b><ul>";
+          for (const d of Object.keys(extras).sort()) html += `<li>${d}: ${fmt(extras[d])}</li>`;
+          html += "</ul>";
+        }
+        if (Object.keys(sums).length) {
+          html += "<b>Nachgetragene Summen (Wochenblöcke o.Ä.)</b><ul>";
+          for (const d of Object.keys(sums).sort()) html += `<li>${d.replace("Summe_","Summe ")}: ${fmt(sums[d])}</li>`;
+          html += "</ul>";
+        }
+        historyEl.innerHTML = html || "Noch keine Nachträge.";
+      }
+
+      // Export / Reset
+      function exportData() {
+        const data = {
+          pastHours: JSON.parse(localStorage.getItem("pastHours") || "{}"),
+          pastSumHours: JSON.parse(localStorage.getItem("pastSumHours") || "{}"),
+          sollstunden: localStorage.getItem("sollstunden")
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "feierabend-timer.json";
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+      function resetAll() {
+        if (confirm("Alle Einträge wirklich löschen?")) {
+          localStorage.removeItem("liveStart");
+          localStorage.removeItem("pastHours");
+          localStorage.removeItem("pastSumHours");
+          // localStorage.removeItem("sollstunden");
+          $("startTime").value = "";
+          renderHistory();
+          updateMonthlyOverview();
+          outputEl.innerHTML = "";
+          hinweisEl.innerHTML = "";
+        }
+      }
+    })();
   </script>
 </body>
 </html>
