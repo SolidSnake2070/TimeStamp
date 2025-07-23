@@ -339,11 +339,13 @@
           `Monatliches Soll: <b>${fmt(sollMonat)}</b><br>` +
           `Gearbeitet: <b>${fmt(istMin)}</b>`;
 
-        hinweisEl.innerHTML =
-          `Aktuelles Soll bis heute (bei 8:00/Tag): <b>${fmt(aktuellesSollBisHeute)}</b><br>` +
-          `Du hast <b>${fmt(istMin)}</b> gearbeitet.<br>` +
-          `Differenz: <span style="font-weight:bold; color:${saldoBisHeute>=0?"#177a26":"#be2134"};">${saldoBisHeute>=0?"+":"–"}${fmt(Math.abs(saldoBisHeute))}</span> Stunde${Math.abs(saldoBisHeute)!==60?"n":""} ${saldoBisHeute>=0?"⬆️ Überstunden":"⬇️ Minus"}`;
-      }
+      const saldoMonat = istMin - sollMonat;
+
+hinweisEl.innerHTML =
+  `Monatliches Soll: <b>${fmt(sollMonat)}</b><br>` +
+  `Du hast <b>${fmt(istMin)}</b> gearbeitet.<br>` +
+  `Differenz: <span style="font-weight:bold; color:${saldoMonat>=0?"#177a26":"#be2134"};">${saldoMonat>=0?"+":"–"}${fmt(Math.abs(saldoMonat))}</span> Stunde${Math.abs(saldoMonat)!==60?"n":""} ${saldoMonat>=0?"⬆️ Überstunden":"⬇️ Minus"}`;
+
 
       // Übersicht: Nur Nachträge!
       function renderHistory() {
