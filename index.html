@@ -2,90 +2,58 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>Gleitzeit-Erfassung (dynamisches Soll)</title>
-  <style>
-    body { font-family:sans-serif; background:#f8fafb; margin:0; padding:0; }
-    .wrap { background:#fff; margin:2em auto; padding:2em 3em; border-radius:12px; box-shadow:0 3px 8px #0001; width:400px;}
-    label { font-weight:bold; }
-    input[type="number"] { width:60px; font-size:1em; text-align:right;}
-    button {margin-top:10px;}
-    #list { margin:15px 0 10px 0;}
-    #list li {font-size:1em;}
-    #sum {margin-top:10px;}
-    #diff { font-weight:bold; margin:10px 0 5px 0;}
-    .clear {margin-top:20px; font-size:12px; color:#777;}
-  </style>
+  <title>Gleitzeit-Test pur</title>
 </head>
 <body>
-  <div class="wrap">
-    <h2>🕔 Gleitzeit-Erfassung</h2>
-    <label>Soll pro Tag (h): <input type="number" id="sollprotag" value="8" min="1"></label>
-    <button onclick="saveSollProTag()">OK</button>
-    <hr>
-    <button onclick="add()">Tag nachtragen</button>
-    <button onclick="resetAll()">Reset</button>
-    <ul id="list"></ul>
-    <div id="sum"></div>
-    <div id="sollmon"></div>
-    <div id="diff"></div>
-    <div class="clear">Tipp: Nachtrag auch nur mit Stunden (z.B. 8) möglich.<br>
-    Dynamisches Soll: <b>Anzahl eingetragener Tage × Soll pro Tag</b></div>
-  </div>
+  <h2>Gleitzeit Debug</h2>
+  <label>Monatliches Soll: <input type="number" id="soll" value="184"></label>
+  <button onclick="saveSoll()">OK</button>
+  <button onclick="add()">Nachtrag Tag</button>
+  <button onclick="reset()">Reset</button>
+  <ul id="list"></ul>
+  <div id="sum"></div>
+  <div id="diff"></div>
   <script>
     function fmt(min) {
-      let h = Math.floor(Math.abs(min) / 60),
-          m = Math.abs(min) % 60,
-          sign = min < 0 ? "-" : "";
-      return sign + h.toString().padStart(2, '0') + ':' + m.toString().padStart(2, '0');
+      let h = Math.floor(min/60), m = min%60;
+      return h.toString().padStart(2,'0')+':'+m.toString().padStart(2,'0');
     }
-    function saveSollProTag() {
-      let v = +document.getElementById("sollprotag").value;
-      localStorage.setItem("sollprotag", v);
+    function saveSoll() {
+      let v=+document.getElementById("soll").value;
+      localStorage.setItem("soll", v);
       show();
     }
     function add() {
-      let d = prompt("Datum (YYYY-MM-DD)");
-      if(!d || !/^\d{4}-\d{2}-\d{2}$/.test(d)) return;
-      let h = prompt("Netto-Stunden (z.B. 8 oder 7:30)");
+      let d=prompt("Datum (YYYY-MM-DD)");
+      if(!d) return;
+      let h=prompt("Netto-Stunden (HH:MM)");
       if(!h) return;
-      let hh = 0, mm = 0;
-      if(/^\d{1,2}:\d{2}$/.test(h)) {
-        [hh, mm] = h.split(":").map(Number);
-      } else if(/^\d{1,2}$/.test(h)) {
-        hh = Number(h); mm = 0;
-      } else {
-        alert("Bitte Stunden im Format HH:MM oder nur HH eingeben!");
-        return;
-      }
+      let [hh,mm]=h.split(":").map(Number);
       let data = JSON.parse(localStorage.getItem("tage") || "{}");
-      data[d] = hh*60 + mm;
+      data[d] = hh*60+mm;
       localStorage.setItem("tage", JSON.stringify(data));
       show();
     }
-    function resetAll() {
+    function reset() {
       if(confirm("Alles löschen?")) {
         localStorage.removeItem("tage");
         show();
       }
     }
     function show() {
-      let sollProTag = +localStorage.getItem("sollprotag") || 8;
-      document.getElementById("sollprotag").value = sollProTag;
+      let soll = +localStorage.getItem("soll") || 184;
+      document.getElementById("soll").value = soll;
       let data = JSON.parse(localStorage.getItem("tage") || "{}");
-      let sum = 0;
-      let tage = Object.keys(data).length;
-      let items = [];
+      let sum = 0, items = [];
       Object.keys(data).sort().forEach(k => {
         sum += data[k];
         items.push(`<li>${k}: ${fmt(data[k])}</li>`);
       });
-      let sollMon = tage * sollProTag * 60;
       document.getElementById("list").innerHTML = items.join("");
       document.getElementById("sum").innerHTML = `Gearbeitet: <b>${fmt(sum)}</b>`;
-      document.getElementById("sollmon").innerHTML = `Soll bis jetzt: <b>${fmt(sollMon)}</b> (${tage} Tage × ${sollProTag}:00)`;
-      document.getElementById("diff").innerHTML = `Differenz: <b>${fmt(sum-sollMon)}</b>`;
+      document.getElementById("diff").innerHTML = `Differenz zu Soll: <b>${fmt(sum-soll*60)}</b>`;
     }
-    if(!localStorage.getItem("sollprotag")) localStorage.setItem("sollprotag", 8);
+    if(!localStorage.getItem("soll")) localStorage.setItem("soll", 184);
     show();
   </script>
 </body>
